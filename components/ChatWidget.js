@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChatBubbleLeftIcon } from '@heroicons/react/24/solid';
 
-const ChatWidget = () => {
+const ChatWidget = ({ prompts = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
@@ -27,7 +27,6 @@ const ChatWidget = () => {
       setInputValue("");
       setFile(null);
 
-      // Optionally, fetch updated messages
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/messages`);
       const updatedMessages = await response.json();
       setMessages(updatedMessages);
@@ -60,7 +59,7 @@ const ChatWidget = () => {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type a message..."
-              className="w-full p-2 border rounded my-2"
+              className="w-full p-2 border rounded my-2 text-black"
             />
             <button
               onClick={handleSendMessage}
@@ -68,6 +67,22 @@ const ChatWidget = () => {
             >
               Send
             </button>
+            {prompts.length > 0 && (
+              <div className="mt-2">
+                <p className="font-semibold">Suggested Prompts:</p>
+                <ul>
+                  {prompts.map((prompt, index) => (
+                    <li
+                      key={index}
+                      className="cursor-pointer text-blue-400 hover:underline"
+                      onClick={() => setInputValue(prompt)}
+                    >
+                      {prompt}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       ) : (
