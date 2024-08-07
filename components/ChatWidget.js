@@ -1,5 +1,7 @@
+'use client';
+
 import { useState } from "react";
-import { ChatBubbleLeftIcon } from "@heroicons/react/solid";
+import { ChatBubbleLeftIcon } from '@heroicons/react/24/solid';
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
