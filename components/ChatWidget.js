@@ -41,6 +41,12 @@ const ChatWidget = ({ prompts = [] }) => {
     >
       {isOpen ? (
         <div className="flex flex-col h-full bg-gray-800 text-white rounded-lg shadow-lg">
+          <button
+            className="absolute top-2 right-2 p-2 bg-red-500 rounded-full text-white"
+            onClick={() => setIsOpen(false)}
+          >
+            X
+          </button>
           <div className="flex-1 overflow-y-scroll p-2">
             {messages.map((msg, index) => (
               <div key={index} className="p-2 border-b border-gray-600">
@@ -54,12 +60,13 @@ const ChatWidget = ({ prompts = [] }) => {
               onChange={handleFileChange}
               className="w-full p-2 border rounded"
             />
-            <input
-              type="text"
+            <textarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type a message..."
-              className="w-full p-2 border rounded my-2 text-black"
+              className="w-full p-2 border rounded my-2 text-black resize-none"
+              rows="1"
+              style={{ overflowY: 'auto' }}
             />
             <button
               onClick={handleSendMessage}
