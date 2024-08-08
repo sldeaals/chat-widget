@@ -6,10 +6,10 @@ import { DocumentIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import Message from "@/components/Message";
+import useScrollToBottom from "@/utils/useScrollToBottom";
 import { fetchMessages } from "@/utils/fetchMessages";
 import { sendMessage } from "@/utils/sendMessage";
-import useScrollToBottom from "@/utils/useScrollToBottom";
 
 const ChatWidget = ({ prompts = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,22 +18,39 @@ const ChatWidget = ({ prompts = [] }) => {
   const [file, setFile] = useState(null);
 
   const senderId = process.env.NEXT_PUBLIC_USER_ID;
-
   const messagesEndRef = useScrollToBottom([messages, isOpen]);
 
   const updateMessages = useCallback(async () => {
-    const updatedMessages = await fetchMessages();
-    setMessages(updatedMessages);
-  }, []);
+    if (isOpen) {
+      const updatedMessages = await fetchMessages();
+      setMessages(updatedMessages);
+    }
+  }, [isOpen]);
 
-  const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+  useEffect(() => {
+    if (isOpen) {
+      updateMessages();
+    }
+  }, [isOpen, updateMessages]);
+
+  const handleFileChange = async (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      try {
+        await sendMessage(senderId, formData);
+        setFile(null);
+        await updateMessages();
+      } catch (error) {
+        console.error("Failed to send file:", error);
+      }
+    }
   };
 
   const handleSendMessage = async () => {
     if (inputValue.trim() || file) {
       const formData = new FormData();
-
       formData.append("content", inputValue);
       if (file) formData.append("file", file);
 
@@ -47,10 +64,6 @@ const ChatWidget = ({ prompts = [] }) => {
       }
     }
   };
-
-  useEffect(() => {
-    updateMessages();
-  }, []);
 
   return (
     <div
@@ -69,17 +82,11 @@ const ChatWidget = ({ prompts = [] }) => {
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
-                <div
+                <Message
                   key={index}
-                  className={cn(
-                    "p-3 rounded-lg max-w-xs",
-                    msg.senderId === senderId
-                      ? "bg-blue-500 text-white ml-auto"
-                      : "bg-gray-700 text-white"
-                  )}
-                >
-                  {msg.content}
-                </div>
+                  msg={msg}
+                  senderId={senderId}
+                />
               ))
             ) : (
               <p className="text-gray-400">No messages yet.</p>
