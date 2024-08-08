@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Button } from "@/components/ui/button";
 import ChatWidget from './ChatWidget';
 
 const Page = ({ title, children, chatProps }) => {
@@ -7,7 +8,7 @@ const Page = ({ title, children, chatProps }) => {
       <h1 className="text-3xl">{title}</h1>
       {children}
       <Link href="/">
-        <button className="bg-blue-500 p-2 rounded">🏠</button>
+        <Button className="bg-blue-500 p-2 rounded">🏠</Button>
       </Link>
       <ChatWidget {...chatProps} />
     </div>
