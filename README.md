@@ -11,6 +11,7 @@ There are no limitations on resources, feel free to use existing code, starter r
 
 ## Install Dependencies
 ```bash
+nvm use
 npm i
 ```
 
@@ -18,14 +19,13 @@ npm i
 ```bash
 NEXT_PUBLIC_API_URL=
 NEXT_PUBLIC_USER_ID=
-USER_ID=
 DATABASE_URL=
+USER_ID=
 ```
 
 ## Initialize Prisma ORM
 ```bash
 npx prisma db push
-#
 npx prisma generate
 ```
 
