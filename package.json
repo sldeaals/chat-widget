@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "setup": "npm install && npx prisma db push && npx prisma generate",
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev-start": "npm run setup && npm run dev",
+    "build": "npm install && npx prisma db push && npx prisma generate && next build",
+    "start": "npm run setup && next start",
     "lint": "next lint"
   },
   "dependencies": {
