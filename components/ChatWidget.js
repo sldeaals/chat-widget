@@ -1,29 +1,31 @@
-'use client';
+"use client";
 
-import { useState/*, useEffect*/ } from "react";
-import { ChatBubbleLeftIcon } from '@heroicons/react/24/solid';
+import { useState, useEffect, useCallback } from "react";
+import { ChatBubbleLeftIcon } from "@heroicons/react/24/solid";
+import { DocumentIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-//import io from 'socket.io-client';
-
-//const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001');
+import { cn } from "@/lib/utils";
+import { fetchMessages } from "@/utils/fetchMessages";
+import { sendMessage } from "@/utils/sendMessage";
+import useScrollToBottom from "@/utils/useScrollToBottom";
 
 const ChatWidget = ({ prompts = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [file, setFile] = useState(null);
-  /*
-  useEffect(() => {
-    socket.on('chat message', (msg) => {
-      setMessages((prevMessages) => [...prevMessages, msg]);
-    });
-    return () => {
-      socket.off('chat message');
-    };
+
+  const senderId = process.env.NEXT_PUBLIC_USER_ID;
+
+  const messagesEndRef = useScrollToBottom([messages, isOpen]);
+
+  const updateMessages = useCallback(async () => {
+    const updatedMessages = await fetchMessages();
+    setMessages(updatedMessages);
   }, []);
-  */
+
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
   };
@@ -31,30 +33,24 @@ const ChatWidget = ({ prompts = [] }) => {
   const handleSendMessage = async () => {
     if (inputValue.trim() || file) {
       const formData = new FormData();
+
       formData.append("content", inputValue);
       if (file) formData.append("file", file);
 
-      const userId = process.env.NEXT_PUBLIC_USER_ID;
-
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/messages`, {
-        method: "POST",
-        headers: {
-          'x-user-id': userId,
-        },
-        body: formData,
-      });
-
-      setInputValue("");
-      setFile(null);
-
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/messages`);
-      const updatedMessages = await response.json();
-      setMessages(updatedMessages);
-      
-      //socket.emit('chat message', { content: inputValue, file });
+      try {
+        await sendMessage(senderId, formData);
+        setInputValue("");
+        setFile(null);
+        await updateMessages();
+      } catch (error) {
+        console.error("Failed to send message:", error);
+      }
     }
   };
+
+  useEffect(() => {
+    updateMessages();
+  }, []);
 
   return (
     <div
@@ -70,37 +66,58 @@ const ChatWidget = ({ prompts = [] }) => {
           >
             X
           </Button>
-          <div className="flex-1 overflow-y-auto p-2">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
-                <div key={index} className="p-2 border-b border-gray-600">
+                <div
+                  key={index}
+                  className={cn(
+                    "p-3 rounded-lg max-w-xs",
+                    msg.senderId === senderId
+                      ? "bg-blue-500 text-white ml-auto"
+                      : "bg-gray-700 text-white"
+                  )}
+                >
                   {msg.content}
                 </div>
               ))
             ) : (
-              <p>No messages yet.</p>
+              <p className="text-gray-400">No messages yet.</p>
             )}
+            <div ref={messagesEndRef} />
           </div>
           <div className="p-2 border-t border-gray-600">
-            <Input
-              type="file"
-              onChange={handleFileChange}
-              className="w-full p-2 border rounded"
-            />
-            <Textarea
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Type a message..."
-              className="w-full p-2 border rounded my-2 text-black resize-none"
-              rows="1"
-              style={{ overflowY: 'auto' }}
-            />
-            <Button
-              onClick={handleSendMessage}
-              className="w-full p-2 bg-blue-500 rounded text-white"
-            >
-              Send
-            </Button>
+            <div className="flex flex-row items-center">
+              <Textarea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-grow h-10 mb-2 text-black resize-none"
+                style={{ overflowY: "auto" }}
+              />
+              <div className="flex flex-col items-center">
+                <div className="relative flex items-center">
+                  <Input
+                    type="file"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="fileInput"
+                  />
+                  <label
+                    htmlFor="fileInput"
+                    className="flex items-center justify-center w-12 h-9 mb-2 bg-gray-700 rounded cursor-pointer hover:bg-gray-600"
+                  >
+                    <DocumentIcon className="h-6 w-6 text-white" />
+                  </label>
+                </div>
+                <Button
+                  onClick={handleSendMessage}
+                  className="w-12 h-9 mb-2 bg-blue-500 rounded text-white"
+                >
+                  Send
+                </Button>
+              </div>
+            </div>
             {prompts.length > 0 && (
               <div className="mt-2">
                 <p className="font-semibold">Suggested Prompts:</p>
