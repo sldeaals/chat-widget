@@ -70,12 +70,16 @@ const ChatWidget = ({ prompts = [] }) => {
           >
             X
           </Button>
-          <div className="flex-1 overflow-y-scroll p-2">
-            {messages.map((msg, index) => (
-              <div key={index} className="p-2 border-b border-gray-600">
-                {msg}
-              </div>
-            ))}
+          <div className="flex-1 overflow-y-auto p-2">
+            {messages.length > 0 ? (
+              messages.map((msg, index) => (
+                <div key={index} className="p-2 border-b border-gray-600">
+                  {msg.content}
+                </div>
+              ))
+            ) : (
+              <p>No messages yet.</p>
+            )}
           </div>
           <div className="p-2 border-t border-gray-600">
             <Input
