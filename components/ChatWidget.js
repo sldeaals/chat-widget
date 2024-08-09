@@ -72,7 +72,6 @@ const ChatWidget = ({ prompts = [] }) => {
   };
 
   const handleClose = useCallback(() => {
-    setIsMaximized(false);
     setIsOpen(false);
   }, []);
 
@@ -173,7 +172,7 @@ const ChatWidget = ({ prompts = [] }) => {
       )}
       {!isOpen && (
         <Button
-          className="p-2 bg-blue-500 rounded-full text-white flex items-center justify-center"
+          className="fixed bottom-4 right-4 p-2 bg-blue-500 rounded-full text-white flex items-center justify-center z-50"
           onClick={() => setIsOpen(true)}
         >
           <ChatBubbleLeftIcon className="h-6 w-6" />
